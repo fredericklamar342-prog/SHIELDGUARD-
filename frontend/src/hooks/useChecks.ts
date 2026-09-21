@@ -2,17 +2,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { parseChecks } from "../lib/checks";
 import type { CheckRow } from "../types/checks";
 
-const DEFAULT_API_BASE = "http://localhost:8787";
+const LOCAL_HOSTS = ["localhost", "127.0.0.1"];
+const isBrowser = typeof window !== "undefined";
+const isLocalhost = isBrowser && LOCAL_HOSTS.includes(window.location.hostname);
+
 const envBase: unknown = import.meta.env.VITE_API_BASE;
 const configuredBase = typeof envBase === "string" && envBase.length > 0 ? envBase : null;
 
-export const API_BASE = configuredBase ?? DEFAULT_API_BASE;
+/**
+ * On localhost, default to the local dev server. On a hosted deployment, use
+ * relative URLs (the Vercel rewrites in vercel.json route /v1/* → /api/index).
+ */
+export const API_BASE = configuredBase ?? (isLocalhost ? "http://localhost:8787" : "");
 
-/** False on a hosted deployment where no backend URL was supplied at build time. */
+/** True when the user explicitly set VITE_API_BASE at build time. */
 export const API_BASE_CONFIGURED = configuredBase !== null;
 
-export const IS_LOCAL_HOST =
-  typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname);
+export const IS_LOCAL_HOST = isLocalhost;
 export const CHECKS_ENDPOINT = `${API_BASE}/v1/checks`;
 export const POLL_INTERVAL_MS = 4000;
 

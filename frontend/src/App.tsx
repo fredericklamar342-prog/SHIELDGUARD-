@@ -19,8 +19,9 @@ export default function App() {
   const summary = summarizeChecks(checks);
   // "Live with zero checks" is a fact; "offline with zero checks" is not.
   const dataKnown = connection === "live" || summary.total > 0;
-  // A hosted deployment without VITE_API_BASE is not "broken", it is unconfigured.
-  const unconfiguredDeployment = !API_BASE_CONFIGURED && !IS_LOCAL_HOST;
+  // On a hosted deployment the API is co-located (same domain, via rewrites),
+  // so "unconfigured" only applies to localhost without a running dev server.
+  const unconfiguredDeployment = IS_LOCAL_HOST && !API_BASE_CONFIGURED;
 
   return (
     <div className="app">
