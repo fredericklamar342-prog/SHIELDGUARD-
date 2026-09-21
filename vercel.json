@@ -6,15 +6,6 @@
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/index.ts": {
-      "runtime": "vercel-node-runtime@3.x",
-      "maxDuration": 60
-    },
-    "api/index.js": {
-      "runtime": "vercel-node-runtime@3.x",
-      "maxDuration": 60
-    },
-    "api/index.py": {
-      "runtime": "vercel-node-runtime@3.x",
       "maxDuration": 60
     }
   },
