@@ -101,6 +101,26 @@ metrics, no fabricated transactions. It surfaces agent identity, per-service sta
 volume, and a table of every check with requester and x402 payment hash, plus designed live,
 offline, empty and loading states.
 
+## Deploying the console
+
+The Vite app lives in `frontend/`, so a host must either be pointed at that directory or use the
+checked-in root `vercel.json`.
+
+**Vercel**
+
+1. Import the repository. Importing the repo **root** is fine: `vercel.json` installs and builds
+   `frontend/` and serves `frontend/dist`. Alternatively set **Root Directory** to `frontend` and let
+   the Vite preset handle it — the root `vercel.json` is then ignored.
+2. Set the backend URL, or the console will show its offline state:
+   `VITE_API_BASE=https://your-backend.example.com` in **Settings → Environment Variables**.
+   Vite inlines this at build time, so **redeploy after changing it**.
+3. The backend must accept your deployment's origin. `src/index.ts` currently restricts CORS to
+   `http://localhost:*`, so requests from a `*.vercel.app` origin are rejected until that allow-list
+   is extended.
+
+The console never fabricates data: if the backend URL is unset or unreachable it reports offline,
+keeps any last known rows and marks them as not current.
+
 ## Build status
 
 Kept deliberately honest — this is where the project actually stands:

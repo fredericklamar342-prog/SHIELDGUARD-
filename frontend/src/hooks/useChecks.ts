@@ -4,8 +4,15 @@ import type { CheckRow } from "../types/checks";
 
 const DEFAULT_API_BASE = "http://localhost:8787";
 const envBase: unknown = import.meta.env.VITE_API_BASE;
+const configuredBase = typeof envBase === "string" && envBase.length > 0 ? envBase : null;
 
-export const API_BASE = typeof envBase === "string" && envBase.length > 0 ? envBase : DEFAULT_API_BASE;
+export const API_BASE = configuredBase ?? DEFAULT_API_BASE;
+
+/** False on a hosted deployment where no backend URL was supplied at build time. */
+export const API_BASE_CONFIGURED = configuredBase !== null;
+
+export const IS_LOCAL_HOST =
+  typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname);
 export const CHECKS_ENDPOINT = `${API_BASE}/v1/checks`;
 export const POLL_INTERVAL_MS = 4000;
 

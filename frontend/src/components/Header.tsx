@@ -6,6 +6,8 @@ type Props = {
   connection: Connection;
   lastUpdated: number | null;
   now: number;
+  /** Hosted build with no backend URL baked in — "unreachable" would be misleading. */
+  unconfigured: boolean;
 };
 
 const CONNECTION_LABEL: Record<Connection, string> = {
@@ -14,12 +16,14 @@ const CONNECTION_LABEL: Record<Connection, string> = {
   connecting: "CONNECTING",
 };
 
-export function Header({ connection, lastUpdated, now }: Props) {
+export function Header({ connection, lastUpdated, now, unconfigured }: Props) {
   const detail =
     connection === "live"
       ? `updated ${timeAgo(new Date(lastUpdated ?? now).toISOString(), now)}`
       : connection === "offline"
-        ? "backend unreachable"
+        ? unconfigured
+          ? "backend not configured"
+          : "backend unreachable"
         : "awaiting first response";
 
   return (

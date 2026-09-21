@@ -4,7 +4,13 @@ import { AgentIdentity } from "./components/AgentIdentity";
 import { Header } from "./components/Header";
 import { MetricsBar } from "./components/MetricsBar";
 import { ServicePanel } from "./components/ServicePanel";
-import { CHECKS_ENDPOINT, POLL_INTERVAL_MS, useChecks } from "./hooks/useChecks";
+import {
+  API_BASE_CONFIGURED,
+  CHECKS_ENDPOINT,
+  IS_LOCAL_HOST,
+  POLL_INTERVAL_MS,
+  useChecks,
+} from "./hooks/useChecks";
 import { summarizeChecks } from "./lib/checks";
 import { timeAgo } from "./lib/format";
 
@@ -13,10 +19,17 @@ export default function App() {
   const summary = summarizeChecks(checks);
   // "Live with zero checks" is a fact; "offline with zero checks" is not.
   const dataKnown = connection === "live" || summary.total > 0;
+  // A hosted deployment without VITE_API_BASE is not "broken", it is unconfigured.
+  const unconfiguredDeployment = !API_BASE_CONFIGURED && !IS_LOCAL_HOST;
 
   return (
     <div className="app">
-      <Header connection={connection} lastUpdated={lastUpdated} now={now} />
+      <Header
+        connection={connection}
+        lastUpdated={lastUpdated}
+        now={now}
+        unconfigured={unconfiguredDeployment}
+      />
 
       <main className="page">
         {connection === "offline" && (
@@ -29,7 +42,9 @@ export default function App() {
                       new Date(lastUpdated).toISOString(),
                       now
                     )}. Figures below are not current.`
-                  : `No response from ${CHECKS_ENDPOINT}.`}
+                  : unconfiguredDeployment
+                    ? "This deployment has no backend configured, so live verification data cannot be loaded."
+                    : `No response from ${CHECKS_ENDPOINT}.`}
               </span>
             </div>
             <button type="button" className="btn" onClick={() => void refresh()}>
@@ -62,11 +77,22 @@ export default function App() {
 
         <MetricsBar summary={summary} now={now} known={dataKnown} />
 
-        <ActivityTable checks={checks} connection={connection} now={now} />
+        <ActivityTable
+          checks={checks}
+          connection={connection}
+          now={now}
+          unconfigured={unconfiguredDeployment}
+        />
 
         <footer className="pagefoot">
           <span>
-            Source <code>GET {CHECKS_ENDPOINT}</code>
+            {unconfiguredDeployment ? (
+              <>Backend URL not configured</>
+            ) : (
+              <>
+                Source <code>GET {CHECKS_ENDPOINT}</code>
+              </>
+            )}
           </span>
           <span>Polled every {POLL_INTERVAL_MS / 1000}s · newest first</span>
         </footer>

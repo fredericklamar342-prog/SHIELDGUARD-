@@ -15,6 +15,8 @@ type Props = {
   checks: CheckRow[];
   connection: Connection;
   now: number;
+  /** True on a hosted deployment where no backend URL was configured at build time. */
+  unconfigured: boolean;
 };
 
 function SkeletonRows() {
@@ -47,20 +49,27 @@ function EmptyState() {
   );
 }
 
-function OfflineState() {
+function OfflineState({ unconfigured }: { unconfigured: boolean }) {
   return (
     <div className="table-state">
       <p className="table-state__title">Verification history unavailable</p>
-      <p className="table-state__body">
-        No records have been retrieved from <code>{CHECKS_ENDPOINT}</code>. Checks will appear here
-        as soon as the backend responds.
-      </p>
+      {unconfigured ? (
+        <p className="table-state__body">
+          No backend is configured for this deployment. Verification history appears here once a
+          backend URL is supplied at build time (see the project README).
+        </p>
+      ) : (
+        <p className="table-state__body">
+          No records have been retrieved from <code>{CHECKS_ENDPOINT}</code>. Checks will appear
+          here as soon as the backend responds.
+        </p>
+      )}
     </div>
   );
 }
 
 /** The core console view: every check the agent has processed, newest first. */
-export function ActivityTable({ checks, connection, now }: Props) {
+export function ActivityTable({ checks, connection, now, unconfigured }: Props) {
   const firstLoad = connection === "connecting" && checks.length === 0;
 
   return (
@@ -80,7 +89,7 @@ export function ActivityTable({ checks, connection, now }: Props) {
         <SkeletonRows />
       ) : checks.length === 0 ? (
         connection === "offline" ? (
-          <OfflineState />
+          <OfflineState unconfigured={unconfigured} />
         ) : (
           <EmptyState />
         )
