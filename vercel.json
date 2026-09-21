@@ -1,7 +1,25 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "installCommand": "npm --prefix frontend install",
+  "installCommand": "npm install && npm --prefix frontend install",
   "buildCommand": "npm --prefix frontend run build",
-  "outputDirectory": "frontend/dist"
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "vercel-node-runtime@3.x",
+      "maxDuration": 60
+    },
+    "api/index.js": {
+      "runtime": "vercel-node-runtime@3.x",
+      "maxDuration": 60
+    },
+    "api/index.py": {
+      "runtime": "vercel-node-runtime@3.x",
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    { "source": "/health", "destination": "/api/index" },
+    { "source": "/v1/:path*", "destination": "/api/index" }
+  ]
 }

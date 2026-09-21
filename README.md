@@ -130,14 +130,16 @@ Kept deliberately honest — this is where the project actually stands:
 | Orbital risk assessment | **Working.** Celestrak TLEs + SGP4, minimum separation sampled over a 24 h window. A coarse proximity screen, not a covariance-based conjunction assessment. |
 | Postgres ledger + `GET /v1/checks` | **Working.** |
 | ERC-8004 trust verification | **Working against placeholder ABI fragments** — awaiting confirmed registry addresses and real ABI from GOAT DevRel. |
-| x402 payment gate | **Stub.** Advertises price and pay-to headers, but requests currently pass through unpaid. Must be replaced before any reviewer demo. |
+| x402 payment gate | **Working.** Real 402 challenges via `@x402/hono` `paymentMiddleware` (verify + settle through the facilitator, x402 v2 `PAYMENT-SIGNATURE` scheme). Paid calls settle after the response and the tx hash is written to `checks.payment_tx_hash`. Not yet end-to-end tested with a paying client on GOAT testnet. |
 | Verification console | **Working**, polls live backend data. |
 | Agent registration script | Written (`src/scripts/registerAgent.ts`); not yet run against the live registry. |
+| Vercel deployment | **Wired, not yet deployed.** `api/index.ts` serves the same Hono app serverlessly (rewrites `/v1/*` + `/health`); console ships from `frontend/dist`. Gate fails closed (500) on missing config — never open. Needs env vars + pooled Postgres in project settings.
 
 ## Repository layout
 
 ```
 src/                 Hono API, risk + trust services, x402 gate, Postgres access
+api/                 Vercel serverless entry (same app, hono/vercel adapter)
 db/schema.sql        Postgres schema: checks, tle_cache, agent_trust
 frontend/            React + TypeScript verification console
 docs/                console screenshot, open questions for GOAT Network DevRel

@@ -31,6 +31,22 @@ npm run dev
 
 `GET /health` should return `{"status":"ok"}` once it's running.
 
+### Deploying to Vercel (console + API together)
+
+The same Hono app runs two ways: `npx tsx src/index.ts` locally, and as the
+serverless function `api/index.ts` on Vercel (`vercel.json` rewrites `/v1/*` and
+`/health` to it, and serves the console from `frontend/dist`).
+
+- [ ] Push the repo and import it as a Vercel project (root `vercel.json` is already set up)
+- [ ] Set env vars in Project → Settings → Environment Variables:
+  `DATABASE_URL`, `X402_FACILITATOR_URL`, `X402_PAY_TO_ADDRESS`,
+  `X402_PRICE_RISK_CHECK`, `X402_PRICE_TRUST_CHECK`, `X402_NETWORK`
+  (plus the ERC-8004 vars when trust-check goes live)
+- [ ] Use a **pooler** Postgres endpoint (e.g. Neon/Supabase pooler) with `?sslmode=require`
+  and keep `PGPOOL_MAX` small (default 3) — every serverless instance opens its own pool
+- [ ] Verify after deploy: `GET /health` → 200, unpaid `POST /v1/risk-check` → 402,
+  and with x402 vars unset the paid route returns 500 (fails closed, never free)
+
 ## 2. Backend logic (build first)
 
 - [x] Scaffold created: `src/riskService.ts` (Celestrak fetch + satellite.js propagation) and `src/trustService.ts` (ERC-8004 read stub)
@@ -53,12 +69,13 @@ npm run dev
 
 ## 5. x402 payment gating
 
-- [ ] Confirm the x402 facilitator URL and settlement flow for GOAT Network testnet with devrel
-- [ ] Replace the stub in `src/x402Gate.ts`:
-  - Return a real `402 Payment Required` with price + facilitator instructions when `X-PAYMENT` is missing
-  - Verify and settle the payment via the facilitator before calling `next()`
+- [x] Replace the stub in `src/x402Gate.ts`:
+  - [x] Return a real `402 Payment Required` with price + pay-to + facilitator `accepts` when `X-PAYMENT` is missing (x402 v2 `payment-required` header)
+  - [x] Verify and settle via the facilitator (`@x402/hono` `paymentMiddleware`) after a 2xx handler response; settlement tx hash is captured in `onAfterSettle` and written to `checks.payment_tx_hash`
+- [x] Fail fast at startup when `X402_PAY_TO_ADDRESS` / `X402_FACILITATOR_URL` / network config is missing — paid routes must never silently serve for free
+- [ ] Confirm the x402 facilitator URL and settlement flow for GOAT Network testnet with devrel (`.env` still has placeholders)
 - [ ] Set real prices in `.env` (`X402_PRICE_RISK_CHECK`, `X402_PRICE_TRUST_CHECK`)
-- [ ] End-to-end test: a paying test client should be able to call both endpoints and see a settled tx hash in `checks.payment_tx_hash`
+- [ ] End-to-end test: a paying test client should be able to call both endpoints and see a settled tx hash in `checks.payment_tx_hash` (smoke-tested so far: 402 challenge verified, no paid round-trip yet)
 
 ## 6. Frontend (build last)
 
