@@ -1,75 +1,50 @@
-# React + TypeScript + Vite
+# ShieldGuard console
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript verification console for the ShieldGuard agent. It polls the backend and shows
+what the agent has actually processed — it never invents data.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev      # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Requires the backend on `http://localhost:8787` (see the root README). Point it elsewhere with a
+`VITE_API_BASE` environment variable.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## What it shows
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Agent identity** — Agent #358, ERC-8004 registration, GOAT Testnet3, full operator wallet with copy.
+- **Service panels** — latest result, request count and last check time for Orbital Risk and Agent Trust.
+- **Verification volume** — checks observed, completed, distinct requesters, oldest record in view.
+- **Recent verification activity** — the core table: time, service, result, key figures (min distance +
+  NORAD pair, or reputation score + registration), requester and x402 payment hash.
 
+States are designed for all four conditions: **live**, **offline**, **empty** and **loading**
+(skeleton rows, no spinner). When the backend is unreachable the console keeps the last known rows but
+marks them as not current, and shows an offline status with a retry action.
+
+## Layout
+
+```
+src/
+├── App.tsx                 polling → layout composition
+├── index.css               design tokens (colour, spacing, type) + reset
+├── App.css                 layout and component styles
+├── hooks/useChecks.ts      GET /v1/checks every 4s; live / offline / connecting
+├── types/checks.ts         API contract types
+├── lib/
+│   ├── checks.ts           defensive parsing, result badges, summary derivations
+│   ├── format.ts           addresses, distances, relative and UTC timestamps
+│   └── identity.ts         agent identity constants
+└── components/             Header, AgentIdentity, ServicePanel, MetricsBar,
+                            ActivityTable, Copyable, StatusBadge
+```
+
+## Scripts
+
+```bash
+npm run dev       # dev server with HMR
+npm run build     # tsc -b && vite build
+npm run lint      # eslint
+npm run preview   # serve the production build
 ```
