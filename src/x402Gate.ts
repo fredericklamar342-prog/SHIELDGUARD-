@@ -33,7 +33,9 @@ function requireEnv(name: string): string {
   if (!value) {
     throw new Error(
       `Missing ${name}: the x402 gate refuses to serve paid routes unconfigured, ` +
-        `otherwise every request would pass through unpaid.`
+        `otherwise every request would pass through unpaid. ` +
+        `Set ${name} in Vercel → Settings → Environment Variables to enable this route ` +
+        `(unpaid routes /health and GET /v1/checks are unaffected).`
     );
   }
   return value;

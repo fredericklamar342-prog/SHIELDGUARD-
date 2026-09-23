@@ -9,6 +9,7 @@ import "dotenv/config";
  * from the connection string.
  */
 export const pool = new Pool({
+  ssl: process.env.DATABASE_URL?.includes("supabase") ? { rejectUnauthorized: false } : undefined,
   connectionString: process.env.DATABASE_URL,
   max: Number(process.env.PGPOOL_MAX ?? 3),
 });
